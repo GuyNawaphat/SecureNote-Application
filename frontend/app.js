@@ -12,25 +12,19 @@ const noteCount = document.getElementById('note-count');
 const tokenInput = document.getElementById('auth-token');
 const toastContainer = document.getElementById('toast-container');
 
-
-// State
 let notes = [];
-let currentApi = 'local'; // 'local' or 'pocket'
+let currentApi = 'local';
 
-// Initialize
 function init() {
-    // If a token was saved previously in local session, load it automatically
     const savedToken = localStorage.getItem('securenote_token');
     if (savedToken) {
         tokenInput.value = savedToken;
     }
 
-    // Save token as user types
     tokenInput.addEventListener('input', (e) => {
         localStorage.setItem('securenote_token', e.target.value);
     });
 
-    // Tab integration
     const tabLocal = document.getElementById('tab-local');
     const tabPocket = document.getElementById('tab-pocket');
 
@@ -41,39 +35,40 @@ function init() {
 
     noteForm.addEventListener('submit', handleAddNote);
 
-    // Initial data fetch
     fetchNotes();
 }
 
-// Switch API Tab
 function switchTab(apiType, activeElement, inactiveElement) {
     if (currentApi === apiType) return;
-    
+
     currentApi = apiType;
     activeElement.classList.add('active');
     inactiveElement.classList.remove('active');
-    
-    // Clear and fetch new notes
+
     notes = [];
     renderNotes();
     fetchNotes();
 }
 
-// HTTP: Fetch notes
 async function fetchNotes() {
     showLoading(true);
     try {
         const url = currentApi === 'local' ? LOCAL_API_URL : POCKET_API_URL;
+        const token = tokenInput.value.trim();
+        const headers = {};
         
-        const response = await fetch(url);
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const response = await fetch(url, { headers });
         if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
 
         const data = await response.json();
-        
+
         if (currentApi === 'local') {
             notes = data;
         } else {
-            // PocketBase maps response differently
             notes = (data.items || []).map(item => ({
                 id: item.id,
                 title: item.title,
@@ -81,18 +76,18 @@ async function fetchNotes() {
                 createdAt: item.created
             }));
         }
-        
+
         renderNotes();
     } catch (error) {
         console.error('Error fetching notes:', error);
         showToast('warning', `Could not load notes from ${currentApi.toUpperCase()} API.`);
-        renderNotes(); // Ensure empty state is shown
+        renderNotes();
     } finally {
         showLoading(false);
     }
 }
 
-// HTTP: Add Note
+
 async function handleAddNote(e) {
     e.preventDefault();
 
@@ -110,16 +105,15 @@ async function handleAddNote(e) {
 
     try {
         const url = currentApi === 'local' ? LOCAL_API_URL : POCKET_API_URL;
-        const headers = { 'Content-Type': 'application/json' };
-        
-        if (currentApi === 'local') {
-            headers['Authorization'] = `Bearer ${token}`;
-        }
+        const headers = { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        };
 
-        // For PocketHost, we pass the token as user_id and student_id just in case the API Rule requires it.
-        const payload = currentApi === 'local' 
-            ? { title, content } 
-            : { title, content, user_id: Number(token) || token, student_id: token };
+        // For PocketHost, the assignment strictly asks for title, content, user_id
+        const payload = currentApi === 'local'
+            ? { title, content }
+            : { title, content, user_id: 2 };
 
         const response = await fetch(url, {
             method: 'POST',
@@ -130,7 +124,6 @@ async function handleAddNote(e) {
         if (response.status === 401) {
             throw new Error('401 Unauthorized Error.');
         } else if (!response.ok) {
-            // Attempt to parse PocketBase specific validation errors
             let errText = `Error: ${response.statusText}`;
             try {
                 const errData = await response.json();
@@ -140,12 +133,12 @@ async function handleAddNote(e) {
                         .join(', ');
                     if (messages) errText = `Validation Error -> ${messages}`;
                 }
-            } catch (e) {}
+            } catch (e) { }
             throw new Error(errText);
         }
 
         const data = await response.json();
-        
+
         const newNote = currentApi === 'local' ? data : {
             id: data.id,
             title: data.title,
@@ -153,10 +146,9 @@ async function handleAddNote(e) {
             createdAt: data.created
         };
 
-        notes.unshift(newNote); // Add to the top of our local state
+        notes.unshift(newNote);
         renderNotes();
 
-        // Reset form
         titleInput.value = '';
         contentInput.value = '';
         showToast('success', 'Secure note successfully saved.');
@@ -166,7 +158,6 @@ async function handleAddNote(e) {
     }
 }
 
-// HTTP: Delete Note
 async function deleteNote(id) {
     const token = tokenInput.value.trim();
 
@@ -178,11 +169,9 @@ async function deleteNote(id) {
 
     try {
         const url = currentApi === 'local' ? `${LOCAL_API_URL}/${id}` : `${POCKET_API_URL}/${id}`;
-        const headers = {};
-        
-        if (currentApi === 'local') {
-            headers['Authorization'] = `Bearer ${token}`;
-        }
+        const headers = {
+            'Authorization': `Bearer ${token}`
+        };
 
         const response = await fetch(url, {
             method: 'DELETE',
@@ -197,7 +186,6 @@ async function deleteNote(id) {
             throw new Error(`Error: ${response.statusText}`);
         }
 
-        // Remove from DOM UI
         notes = notes.filter(n => n.id !== id);
         renderNotes();
         showToast('success', 'Note deleted permanently.');
@@ -207,10 +195,8 @@ async function deleteNote(id) {
     }
 }
 
-// Vite uses type="module", so inline onclick handlers can only access global functions.
 window.deleteNote = deleteNote;
 
-// DOM Rendering
 function renderNotes() {
     notesGrid.innerHTML = '';
 
@@ -252,7 +238,6 @@ function renderNotes() {
     noteCount.textContent = notes.length;
 }
 
-// Add event delegation for delete buttons
 notesGrid.addEventListener('click', (e) => {
     const deleteBtn = e.target.closest('.btn-delete');
     if (deleteBtn) {
@@ -261,7 +246,6 @@ notesGrid.addEventListener('click', (e) => {
     }
 });
 
-// Helpers
 function showLoading(isLoading) {
     if (isLoading) {
         loadingIndicator.classList.remove('hidden');
@@ -288,22 +272,18 @@ function showToast(type, message) {
     toast.innerHTML = `${icon} <span>${message}</span>`;
     toastContainer.appendChild(toast);
 
-    // Add slide-in animation shortly after appending
     setTimeout(() => toast.classList.add('show'), 10);
 
-    // Disappear after duration
     setTimeout(() => {
         toast.classList.remove('show');
         setTimeout(() => toast.remove(), 300);
     }, 4000);
 }
 
-// Simple text escape for preventing XSS in displayed content
 function escapeHTML(str) {
     const div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
 }
 
-// Boot
 document.addEventListener('DOMContentLoaded', init);

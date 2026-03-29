@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SecureNote Tool</title>
     <meta name="description" content="A lightweight, secure internal tool for managing notes.">
-    <!-- Google Fonts: Outfit -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -14,16 +13,13 @@
 </head>
 
 <body>
-    <!-- Dynamic notification toaster -->
     <div id="toast-container"></div>
 
-    <!-- Animated background gradients -->
     <div class="background-gradients">
         <div class="blob blob-1"></div>
         <div class="blob blob-2"></div>
     </div>
 
-    <!-- Navigation Bar -->
     <header class="navbar glassmorphism">
         <div class="logo">
             <svg viewBox="0 0 24 24" fill="none" class="lock-icon" stroke="currentColor" stroke-width="2"
@@ -46,7 +42,6 @@
     </header>
 
     <main class="container">
-        <!-- API Selection Tabs -->
         <div class="api-tabs-container">
             <div class="api-tabs glassmorphism">
                 <button id="tab-local" class="tab-btn active">Node.js API Workspace</button>
@@ -54,7 +49,6 @@
             </div>
         </div>
 
-        <!-- Create Note Section -->
         <section class="add-note-section glassmorphism">
             <h2>Create New Note</h2>
             <form id="note-form">
@@ -78,19 +72,16 @@
             </form>
         </section>
 
-        <!-- Display Notes Section -->
         <section class="notes-list-section">
             <div class="section-header">
                 <h2>Your Notes</h2>
                 <div class="badge" id="note-count">0</div>
             </div>
 
-            <!-- Loading Indicator -->
             <div id="loading" class="hidden">
                 <div class="spinner"></div>
             </div>
 
-            <!-- Empty State -->
             <div id="empty-state" class="empty-state hidden">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
                     stroke-linejoin="round">
@@ -103,9 +94,7 @@
                 <p>No notes found. Try creating one above.</p>
             </div>
 
-            <!-- Notes Grid -->
             <div class="notes-grid" id="notes-grid">
-                <!-- JavaScript will dynamically inject note cards here -->
             </div>
         </section>
     </main>

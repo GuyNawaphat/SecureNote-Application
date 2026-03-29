@@ -31,7 +31,6 @@ body {
     padding-bottom: 40px;
 }
 
-/* Animated gradient blobs */
 .background-gradients {
     position: fixed;
     top: 0;
@@ -73,7 +72,6 @@ body {
     50% { transform: translateY(-30px) scale(1.05); }
 }
 
-/* Glassmorphism */
 .glassmorphism {
     background: var(--card-bg);
     backdrop-filter: blur(12px);
@@ -82,7 +80,6 @@ body {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
-/* Navbar */
 .navbar {
     position: sticky;
     top: 0;
@@ -149,7 +146,6 @@ body {
     color: var(--text-muted);
 }
 
-/* Main Layout */
 .container {
     max-width: 1000px;
     margin: 2rem auto;
@@ -159,7 +155,6 @@ body {
     gap: 2.5rem;
 }
 
-/* Form Section */
 .api-tabs-container {
     display: flex;
     justify-content: center;
@@ -274,7 +269,6 @@ input[type="text"]:focus, textarea:focus {
     height: 18px;
 }
 
-/* Notes List Section */
 .section-header {
     display: flex;
     align-items: center;
@@ -291,14 +285,12 @@ input[type="text"]:focus, textarea:focus {
     font-weight: 600;
 }
 
-/* Grid */
 .notes-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 1.5rem;
 }
 
-/* Note Card */
 .note-card {
     background: var(--card-bg);
     border: 1px solid var(--card-border);
@@ -324,7 +316,6 @@ input[type="text"]:focus, textarea:focus {
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 
-/* Subtle accent line on top of card */
 .note-card::before {
     content: '';
     position: absolute;
@@ -396,7 +387,6 @@ input[type="text"]:focus, textarea:focus {
     height: 18px;
 }
 
-/* States */
 .hidden {
     display: none !important;
 }
@@ -418,7 +408,6 @@ input[type="text"]:focus, textarea:focus {
     opacity: 0.5;
 }
 
-/* Spinner */
 .spinner {
     width: 40px;
     height: 40px;
@@ -433,7 +422,6 @@ input[type="text"]:focus, textarea:focus {
     to { transform: rotate(360deg); }
 }
 
-/* Toasts */
 #toast-container {
     position: fixed;
     bottom: 24px;

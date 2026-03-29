@@ -14,9 +14,8 @@ const DB_FILE = path.join(__dirname, 'db.json');
 
 const app = express();
 app.use(cors());
-app.use(express.json()); // For parsing application/json
+app.use(express.json());
 
-// Initialize DB
 function initDB() {
     if (!fs.existsSync(DB_FILE)) {
         fs.writeFileSync(DB_FILE, JSON.stringify({ notes: [] }, null, 2));
@@ -35,11 +34,9 @@ function saveDB(data) {
     fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
 }
 
-// Middleware for auth
 function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization'];
     
-    // Support either "Bearer <token>" or just "<token>"
     const token = authHeader && authHeader.startsWith('Bearer ') 
         ? authHeader.split(' ')[1] 
         : authHeader;
@@ -54,8 +51,6 @@ function authenticateToken(req, res, next) {
     
     next();
 }
-
-// --- Routes ---
 
 app.get('/api/notes', (req, res) => {
     const db = getDB();
