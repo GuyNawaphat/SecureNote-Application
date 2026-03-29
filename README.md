@@ -1,66 +1,84 @@
 # SecureNote Web Application
 
-SecureNote is a lightweight, secure internal tool formulated to allow authorized users to safely create, view, and delete encrypted notes.
+SecureNote เป็นแอปพลิเคชันจดบันทึกแบบปลอดภัย ที่มีระบบตรวจสอบสิทธิ์ด้วย Secret Token อย่างเรียบง่าย โปรเจกต์นี้แยกการทำงานออกเป็นระบบ Frontend (หน้าบ้าน) และ Backend (หลังบ้าน) อย่างชัดเจน
 
-## 🚀 Features
-- **Frontend:** Built with Vanilla JavaScript, HTML5, and custom modern CSS (incorporating Glassmorphism, Dark Mode, and subtle animations).
-- **Backend:** Node.js + Express RESTful API.
-- **Security:** Secret-token-based authorization to strictly protect note creation and deletion.
-- **Dynamic Updates:** DOM manipulation ensures seamless UI state changes without refreshing the page.
+## โครงสร้างโปรเจกต์
+- **/frontend** - พัฒนาด้วย HTML, CSS, JavaScript (Vanilla JS) โดยมี Vite เป็นเครื่องมือจัดการและ Build โค้ด
+- **/backend** - พัฒนาด้วย Node.js และ Express.js โดยรับส่งข้อมูลผ่าน API และใช้ระบบไฟล์ (`db.json`) ในการเก็บข้อมูลลงเซิร์ฟเวอร์
 
 ---
 
-## 🛠️ Installation & Setup Prerequisites
+## วิธีติดตั้งและรันโปรแกรมเพื่อทดสอบในเครื่อง
 
-Ensure you have **[Node.js](https://nodejs.org/)** installed on your system.
+### 1. ส่วนหลังบ้าน (Backend Server)
+เข้าไปตั้งค่าระบบหลังบ้านและเชื่อมต่อฐานข้อมูลจำลอง (JSON File) ให้เรียบร้อยเพื่อเปิดช่องทางเชื่อมต่อ API
 
-### 1. Clone the Repository
-```bash
-git clone <your-repository-url>
-cd <repository-folder>
-```
-
-### 2. Configure the Backend
-The backend specifically requires an environment variable for authorization credentials.
-1. Navigate to the `backend` directory:
+1. เปิดหน้าต่าง Terminal แล้วเข้าไปที่โฟลเดอร์ `backend`:
    ```bash
    cd backend
    ```
-2. Install the necessary dependencies:
+2. ติดตั้ง Dependencies ต่างๆ (เช่น express, cors, uuid, dotenv):
    ```bash
    npm install
    ```
-3. **Crucial Security Step:** Create a file exclusively named `.env` inside the `backend` folder.
-4. Add the following variables to your newly created `backend/.env` file:
+3. สร้างไฟล์ชื่อ `.env` ไว้ในโฟลเดอร์ `backend` แล้วตั้งค่าตัวแปรดังนี้:
    ```env
    PORT=3000
-   SECRET_TOKEN=my-super-secret-token-123
+   SECRET_TOKEN=ใส่รหัสลับที่นี่
    ```
-   *(Note: By explicit design and as defined in the `.gitignore`, `.env` must never be committed to source control to preserve security).*
+4. สตาร์ทตัวเซิร์ฟเวอร์หลังบ้าน:
+   ```bash
+   npm start
+   ```
+   *(หรือใช้คำสั่ง `node server.js`)*
+   เซิร์ฟเวอร์จะถูกรันขึ้นมาที่ `http://localhost:3000`
 
 ---
 
-## ▶️ Running the Application
+### 2. ส่วนหน้าบ้าน (Frontend Web)
+ระบบหน้าเว็บใช้เครื่องมืออย่าง Vite ในการรันเซิร์ฟเวอร์ของหน้าบ้าน
 
-### Step 1: Start the Backend Server
-From strictly inside the `backend` directory, start the Express server:
-```bash
-npm start
-```
-*(The server will boot up immediately and listen on `http://localhost:3000`).*
+1. เปิด Terminal ใหม่ (หน้าต่างใหม่) แล้วเข้าไปที่โฟลเดอร์ `frontend`:
+   ```bash
+   cd frontend
+   ```
+2. ติดตั้ง Dependencies ของระบบฝั่งหน้าบ้าน:
+   ```bash
+   npm install
+   ```
+3. **อัปเดต URL ของเซิร์ฟเวอร์:**
+   ไปที่ไฟล์ `frontend/app.js` บริเวณบรรทัดแรก ตรวจสอบหรือแก้ไขตัวแปร `API_URL` ให้ตรงกับ Backend:
+   - กรณีรันในเครื่องให้เปลี่ยนเป็น:
+     ```javascript
+     const API_URL = 'http://localhost:3000/api/notes';
+     ```
+   - *กรณีนำไป Deploy บนโฮสติ้งจริง (เช่น Render) ให้เปลี่ยนใส่ URL ของ API ของจริง*
 
-### Step 2: Launch the Frontend
-Because we strictly used Vanilla HTML, JS, and CSS (Path A), no frontend build step, bundler, or Node package is required!
-You can simply open the `frontend/index.html` file seamlessly right in your web browser:
-- Double-click `index.html` natively from your desktop file explorer.
-- **Or**, right-click the file in Visual Studio Code and open it with the **Live Server** extension.
-
-### Step 3: Using the Application securely
-1. Once the elegant UI loads, locate the lock/password input container at the top right corner of the navigation bar.
-2. Enter the exact string you defined as your `SECRET_TOKEN` from your `.env` file (e.g., `my-super-secret-token-123`).
-3. You can now securely create, list, and delete notes. The frontend `app.js` file handles the complexity of dynamically injecting your token continuously into the `Authorization: Bearer <token>` HTTP request headers when communicating back to the Node API.
+4. กดรันหน้าเว็บไซต์:
+   ```bash
+   npm run dev
+   ```
+   ให้เอาลิงก์ที่แสดงใน Terminal ไปเปิดบนเบราว์เซอร์ (ปกติจะเป็น URL: `http://localhost:5173`)
 
 ---
 
-## 📄 Technical Documentation
-For an in-depth conceptual breakdown of the underlying technology—including JS Engines vs. Runtimes, Direct DOM Manipulation mechanics, HTTP/HTTPS network lifecycles, and Environment Variable security vulnerability mapping—please meticulously refer to the strictly formatted `REPORT.md` file located alongside this repository.
+## การนำไปใช้งานจริง (Production Build)
+
+หากต้องการนำ "ส่วนหน้าบ้าน" โหลดขึ้น Hosting เช่น Vercel ตัว Vite จำเป็นต้องแปลงหน้าเว็บให้เป็นไฟล์ขนาดเล็กที่ทำงานได้เร็วที่สุดก่อน
+
+1. เข้าไปโฟลเดอร์ `frontend`
+2. รันคำสั่งสำหรับการ Build:
+   ```bash
+   npm run build
+   ```
+3. จะได้โฟลเดอร์ใหม่ที่ชื่อว่า `dist/` ซึ่งเป็นซอร์สโค้ดสำเร็จรูป สามารถนำทั้งโฟลเดอร์ `dist/` นี้ไป Deploy บน Hosting ต่างๆ ได้ทันที!
+
+---
+
+## วิธีใช้งานในฐานะผู้ใช้
+
+1. เมื่อเปิดหน้าจอของ SecureNote ระบบจะพยายามดึงข้อมูล (อาจจะเห็นมีโน้ต หรือหน้าจอว่างเปล่า)
+2. **การยืนยันตัวตน:** ให้สังเกตที่ช่องกรอกกุญแจ (Secret Token) ด้านขวาบน หน้าที่และรหัสที่กรอก **ต้องใช้รหัสเดียวกัน** กับที่ตั้งเป็น `SECRET_TOKEN` ไว้ในหลังบ้าน (.env)
+3. หากรหัส Token ถูกต้อง:
+   - ทดสอบพิมพ์ **Title** และ **Content** ด้านล่าง จากนั้นกด **Securely Save Note** เพื่อบันทึกโน้ตสู่เซิร์ฟเวอร์
+   - ทดสอบกดปุ่ม **ไอคอนถังขยะ** บริเวณมุมของการ์ดโน้ต ข้อมูลจะถูกลบทันทีและจัดการจาก Backend อย่างปลอดภัย

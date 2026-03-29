@@ -1,4 +1,5 @@
-const API_URL = 'https://securenote-backend-2qai.onrender.com/api/notes';
+const LOCAL_API_URL = 'https://securenote-backend-2qai.onrender.com/api/notes';
+const POCKET_API_URL = 'https://app-tracking.pockethost.io/api/collections/notes/records';
 
 // DOM Elements
 const noteForm = document.getElementById('note-form');
@@ -14,6 +15,7 @@ const toastContainer = document.getElementById('toast-container');
 
 // State
 let notes = [];
+let currentApi = 'local'; // 'local' or 'pocket'
 
 // Initialize
 function init() {
@@ -28,9 +30,32 @@ function init() {
         localStorage.setItem('securenote_token', e.target.value);
     });
 
+    // Tab integration
+    const tabLocal = document.getElementById('tab-local');
+    const tabPocket = document.getElementById('tab-pocket');
+
+    if (tabLocal && tabPocket) {
+        tabLocal.addEventListener('click', () => switchTab('local', tabLocal, tabPocket));
+        tabPocket.addEventListener('click', () => switchTab('pocket', tabPocket, tabLocal));
+    }
+
     noteForm.addEventListener('submit', handleAddNote);
 
     // Initial data fetch
+    fetchNotes();
+}
+
+// Switch API Tab
+function switchTab(apiType, activeElement, inactiveElement) {
+    if (currentApi === apiType) return;
+    
+    currentApi = apiType;
+    activeElement.classList.add('active');
+    inactiveElement.classList.remove('active');
+    
+    // Clear and fetch new notes
+    notes = [];
+    renderNotes();
     fetchNotes();
 }
 
@@ -38,14 +63,29 @@ function init() {
 async function fetchNotes() {
     showLoading(true);
     try {
-        const response = await fetch(API_URL);
+        const url = currentApi === 'local' ? LOCAL_API_URL : POCKET_API_URL;
+        
+        const response = await fetch(url);
         if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
 
-        notes = await response.json();
+        const data = await response.json();
+        
+        if (currentApi === 'local') {
+            notes = data;
+        } else {
+            // PocketBase maps response differently
+            notes = (data.items || []).map(item => ({
+                id: item.id,
+                title: item.title,
+                content: item.content,
+                createdAt: item.created
+            }));
+        }
+        
         renderNotes();
     } catch (error) {
         console.error('Error fetching notes:', error);
-        showToast('warning', 'Could not load notes. Is the Node.js server running?');
+        showToast('warning', `Could not load notes from ${currentApi.toUpperCase()} API.`);
         renderNotes(); // Ensure empty state is shown
     } finally {
         showLoading(false);
@@ -62,30 +102,41 @@ async function handleAddNote(e) {
 
     if (!title || !content) return;
 
-    if (!token) {
+    if (currentApi === 'local' && !token) {
         showToast('error', 'Authentication Error: Please enter a Secret Token at the top right.');
         tokenInput.focus();
         return;
     }
 
     try {
-        const response = await fetch(API_URL, {
+        const url = currentApi === 'local' ? LOCAL_API_URL : POCKET_API_URL;
+        const headers = { 'Content-Type': 'application/json' };
+        
+        if (currentApi === 'local') {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const response = await fetch(url, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                // Our backend handles both basic "Token" string or "Bearer Token" cleanly.
-                'Authorization': `Bearer ${token}`
-            },
+            headers,
             body: JSON.stringify({ title, content })
         });
 
         if (response.status === 401) {
-            throw new Error('401 Unauthorized: Invalid Secret Token.');
+            throw new Error('401 Unauthorized Error.');
         } else if (!response.ok) {
             throw new Error(`Error: ${response.statusText}`);
         }
 
-        const newNote = await response.json();
+        const data = await response.json();
+        
+        const newNote = currentApi === 'local' ? data : {
+            id: data.id,
+            title: data.title,
+            content: data.content,
+            createdAt: data.created
+        };
+
         notes.unshift(newNote); // Add to the top of our local state
         renderNotes();
 
@@ -103,22 +154,27 @@ async function handleAddNote(e) {
 async function deleteNote(id) {
     const token = tokenInput.value.trim();
 
-    if (!token) {
+    if (currentApi === 'local' && !token) {
         showToast('error', 'Authentication Error: Please enter your Secret Token to delete.');
         tokenInput.focus();
         return;
     }
 
     try {
-        const response = await fetch(`${API_URL}/${id}`, {
+        const url = currentApi === 'local' ? `${LOCAL_API_URL}/${id}` : `${POCKET_API_URL}/${id}`;
+        const headers = {};
+        
+        if (currentApi === 'local') {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const response = await fetch(url, {
             method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
+            headers
         });
 
         if (response.status === 401) {
-            throw new Error('401 Unauthorized: Invalid Secret Token.');
+            throw new Error('401 Unauthorized Error.');
         } else if (response.status === 404) {
             throw new Error('404 Not Found: The note could not be found or has already been deleted.');
         } else if (!response.ok) {
