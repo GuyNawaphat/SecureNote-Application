@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+
+# Environment Variables
+.env
+.env.*
+!.env.example
+
+# Database
+db.json
+
+# IDE and OS
+.vscode/
+.DS_Store
+Thumbs.db
