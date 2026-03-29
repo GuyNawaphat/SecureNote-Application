@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3000/api/notes';
+const API_URL = typeof ENV !== 'undefined' && ENV.PORT_URL ? ENV.PORT_URL : 'http://localhost:3000/api/notes';
 
 // DOM Elements
 const noteForm = document.getElementById('note-form');
@@ -10,6 +10,7 @@ const emptyState = document.getElementById('empty-state');
 const noteCount = document.getElementById('note-count');
 const tokenInput = document.getElementById('auth-token');
 const toastContainer = document.getElementById('toast-container');
+
 
 // State
 let notes = [];
@@ -28,7 +29,7 @@ function init() {
     });
 
     noteForm.addEventListener('submit', handleAddNote);
-    
+
     // Initial data fetch
     fetchNotes();
 }
@@ -39,7 +40,7 @@ async function fetchNotes() {
     try {
         const response = await fetch(API_URL);
         if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
-        
+
         notes = await response.json();
         renderNotes();
     } catch (error) {
@@ -54,13 +55,13 @@ async function fetchNotes() {
 // HTTP: Add Note
 async function handleAddNote(e) {
     e.preventDefault();
-    
+
     const title = titleInput.value.trim();
     const content = contentInput.value.trim();
     const token = tokenInput.value.trim();
-    
+
     if (!title || !content) return;
-    
+
     if (!token) {
         showToast('error', 'Authentication Error: Please enter a Secret Token at the top right.');
         tokenInput.focus();
@@ -73,26 +74,26 @@ async function handleAddNote(e) {
             headers: {
                 'Content-Type': 'application/json',
                 // Our backend handles both basic "Token" string or "Bearer Token" cleanly.
-                'Authorization': `Bearer ${token}` 
+                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({ title, content })
         });
-        
+
         if (response.status === 401) {
             throw new Error('401 Unauthorized: Invalid Secret Token.');
         } else if (!response.ok) {
             throw new Error(`Error: ${response.statusText}`);
         }
-        
+
         const newNote = await response.json();
         notes.unshift(newNote); // Add to the top of our local state
         renderNotes();
-        
+
         // Reset form
         titleInput.value = '';
         contentInput.value = '';
         showToast('success', 'Secure note successfully saved.');
-        
+
     } catch (error) {
         showToast('error', error.message);
     }
@@ -101,7 +102,7 @@ async function handleAddNote(e) {
 // HTTP: Delete Note
 async function deleteNote(id) {
     const token = tokenInput.value.trim();
-    
+
     if (!token) {
         showToast('error', 'Authentication Error: Please enter your Secret Token to delete.');
         tokenInput.focus();
@@ -115,7 +116,7 @@ async function deleteNote(id) {
                 'Authorization': `Bearer ${token}`
             }
         });
-        
+
         if (response.status === 401) {
             throw new Error('401 Unauthorized: Invalid Secret Token.');
         } else if (response.status === 404) {
@@ -123,12 +124,12 @@ async function deleteNote(id) {
         } else if (!response.ok) {
             throw new Error(`Error: ${response.statusText}`);
         }
-        
+
         // Remove from DOM UI
         notes = notes.filter(n => n.id !== id);
         renderNotes();
         showToast('success', 'Note deleted permanently.');
-        
+
     } catch (error) {
         showToast('error', error.message);
     }
@@ -137,20 +138,20 @@ async function deleteNote(id) {
 // DOM Rendering
 function renderNotes() {
     notesGrid.innerHTML = '';
-    
+
     if (notes.length === 0) {
         emptyState.classList.remove('hidden');
         notesGrid.classList.add('hidden');
     } else {
         emptyState.classList.add('hidden');
         notesGrid.classList.remove('hidden');
-        
+
         notes.forEach(note => {
             const dateStr = new Date(note.createdAt).toLocaleDateString(undefined, {
                 year: 'numeric', month: 'short', day: 'numeric',
                 hour: '2-digit', minute: '2-digit'
             });
-            
+
             const card = document.createElement('div');
             card.className = 'note-card';
             card.innerHTML = `
@@ -172,7 +173,7 @@ function renderNotes() {
             notesGrid.appendChild(card);
         });
     }
-    
+
     noteCount.textContent = notes.length;
 }
 
@@ -190,7 +191,7 @@ function showLoading(isLoading) {
 function showToast(type, message) {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    
+
     let icon = '';
     if (type === 'error') {
         icon = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`;
@@ -199,13 +200,13 @@ function showToast(type, message) {
     } else {
         icon = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`;
     }
-    
+
     toast.innerHTML = `${icon} <span>${message}</span>`;
     toastContainer.appendChild(toast);
-    
+
     // Add slide-in animation shortly after appending
     setTimeout(() => toast.classList.add('show'), 10);
-    
+
     // Disappear after duration
     setTimeout(() => {
         toast.classList.remove('show');
