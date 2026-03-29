@@ -116,16 +116,31 @@ async function handleAddNote(e) {
             headers['Authorization'] = `Bearer ${token}`;
         }
 
+        const payload = currentApi === 'local' 
+            ? { title, content } 
+            : { title, content, user_id: 0 }; // PocketBase schema seems to have user_id
+
         const response = await fetch(url, {
             method: 'POST',
             headers,
-            body: JSON.stringify({ title, content })
+            body: JSON.stringify(payload)
         });
 
         if (response.status === 401) {
             throw new Error('401 Unauthorized Error.');
         } else if (!response.ok) {
-            throw new Error(`Error: ${response.statusText}`);
+            // Attempt to parse PocketBase specific validation errors
+            let errText = `Error: ${response.statusText}`;
+            try {
+                const errData = await response.json();
+                if (errData && errData.data) {
+                    const messages = Object.keys(errData.data)
+                        .map(key => `${key}: ${errData.data[key].message}`)
+                        .join(', ');
+                    if (messages) errText = `Validation Error -> ${messages}`;
+                }
+            } catch (e) {}
+            throw new Error(errText);
         }
 
         const data = await response.json();
