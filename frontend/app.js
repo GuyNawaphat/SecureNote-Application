@@ -102,8 +102,8 @@ async function handleAddNote(e) {
 
     if (!title || !content) return;
 
-    if (currentApi === 'local' && !token) {
-        showToast('error', 'Authentication Error: Please enter a Secret Token at the top right.');
+    if (!token) {
+        showToast('error', 'Authentication/ID Error: Please enter your Secret Token (or Student ID) at the top right.');
         tokenInput.focus();
         return;
     }
@@ -116,9 +116,10 @@ async function handleAddNote(e) {
             headers['Authorization'] = `Bearer ${token}`;
         }
 
+        // For PocketHost, we pass the token as user_id and student_id just in case the API Rule requires it.
         const payload = currentApi === 'local' 
             ? { title, content } 
-            : { title, content, user_id: 0 }; // PocketBase schema seems to have user_id
+            : { title, content, user_id: Number(token) || token, student_id: token };
 
         const response = await fetch(url, {
             method: 'POST',
