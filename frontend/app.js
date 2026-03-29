@@ -1,4 +1,4 @@
-const API_URL = typeof ENV !== 'undefined' && ENV.PORT_URL ? ENV.PORT_URL : 'http://localhost:3000/api/notes';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/notes';
 
 // DOM Elements
 const noteForm = document.getElementById('note-form');
