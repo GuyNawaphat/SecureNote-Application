@@ -135,6 +135,9 @@ async function deleteNote(id) {
     }
 }
 
+// Vite uses type="module", so inline onclick handlers can only access global functions.
+window.deleteNote = deleteNote;
+
 // DOM Rendering
 function renderNotes() {
     notesGrid.innerHTML = '';
