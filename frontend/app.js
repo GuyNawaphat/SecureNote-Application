@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/notes';
+const API_URL = 'https://securenote-backend-xxxx.onrender.com/api/notes';
 
 // DOM Elements
 const noteForm = document.getElementById('note-form');
